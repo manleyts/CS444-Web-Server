@@ -6,6 +6,13 @@
  * Created by Daqing Hou, dhou@clarkson.edu                                *
  *            Xinchao Song, xisong@clarkson.edu                            *
  * March 30, 2022                                                          *
+ *                                                                         *
+ * Edited by Nathan Collinsworth, collinsn@clarkson.edu                    *
+ *           Michael Horick, horickmj@clarkson.edu                         *    
+ *           Taylor Manley, manleyts@clarkson.edu                          *
+ *           Michael Prevost, prevosmj@clarkson.edu                        *
+ * April 06, 2022                                                          *
+ *                                                                         *
  * Copyright © 2022 CS 444/544 Instructor Team. All rights reserved.       *
  * Unauthorized use is strictly prohibited.                                *
  ***************************************************************************
