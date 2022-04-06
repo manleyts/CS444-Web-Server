@@ -1,0 +1,23 @@
+warvan@warvan-VirtualBox:~/Downloads/cs444-sp2022-project$ ./server
+The server is now listening on port 7000.
+Successfully accepted Browser #0 for Session #0.
+Received message from Browser #0 for Session #0: x = 1
+Received message from Browser #0 for Session #0: y = 2
+Received message from Browser #0 for Session #0: z = x + y
+
+
+
+warvan@warvan-VirtualBox:~/Downloads/cs444-sp2022-project$ ./browser
+Connected to 127.0.0.1:7000.
+Running Session #0:
+x = 1
+x = 1.000000
+
+y = 2
+x = 1.000000
+y = 2.000000
+
+z = x + y
+x = 1.000000
+y = 2.000000
+z = 3.000000
