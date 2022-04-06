@@ -1,5 +1,10 @@
 # CS 444/544 Project: Prototyping a Web Server/Browser
 
+## Nathan Collinsworth - collinsn@clarkson.edu
+## Michael Horick - horickmj@clarkson.edu
+## Taylor Manley - manleyts@clarkson.edu
+## Michael Prevost - prevosmj@clarkson.edu
+
 ## Server
 
 ### Capacity
