@@ -75,7 +75,7 @@ void get_session_file_path(int session_id, char path[]);
 void load_all_sessions();
 
 // Saves the given sessions to the disk.
-void save_session(int session_id);
+void save_session(int session_id, char responce[]);
 
 // Assigns a browser ID to the new browser.
 // Determines the correct session ID for the new browser
@@ -252,6 +252,39 @@ void load_all_sessions() {
     // TODO: For Part 1.1, write your file operation code here.
     // Hint: Use get_session_file_path() to get the file path for each session.
     //       Don't forget to load all of sessions on the disk.
+    for(int i = 0; i < 128; i++){//loop through all possible sessions
+        char path[BUFFER_LEN];
+        get_session_file_path(i, path);
+        FILE *fp;
+        
+        if((fp = fopen(path, "r"))){//try to open a file for the session if it exists
+            //get all the data from the file
+            session_t session = session_list[i];
+            char data[BUFFER_LEN];
+            memset(data, 0, BUFFER_LEN);
+            char c[1] = {'0'};
+            while(c[0] != EOF){
+                c[0] = fgetc(fp);
+                if(c[0] != EOF){
+                    strncat(data,c,1);
+                }
+            }
+            //parse the data from the file here
+            char *pc;
+            pc = strtok(data, " \n=");
+            while(pc != NULL){
+                char *var = pc;
+                pc = strtok(NULL, " \n=");
+                double val = atof(pc);
+                session.variables[*var-'a'] = true;
+                session.values[*var-'a'] = val;
+                if(pc != NULL){
+                    pc = strtok(NULL, " \n=");
+                }
+            }
+            fclose(fp);
+        }
+    }
 }
 
 /**
@@ -259,9 +292,15 @@ void load_all_sessions() {
  *
  * @param session_id the session ID
  */
-void save_session(int session_id) {
+void save_session(int session_id, char response[]) { //added result parameter to get the session status from 
     // TODO: For Part 1.1, write your file operation code here.
     // Hint: Use get_session_file_path() to get the file path for each session.
+    char path[BUFFER_LEN]; 
+    get_session_file_path(session_id, path); //sets the session file path to path str
+    FILE *fp;
+    fp = fopen(path, "w+"); //creates or opens session file
+    fputs(response, fp); //writes session data to session file
+    fclose(fp);
 }
 
 /**
@@ -354,7 +393,7 @@ void browser_handler(int browser_socket_fd) {
         session_to_str(session_id, response);
         broadcast(session_id, response);
 
-        save_session(session_id);
+        save_session(session_id, response);
     }
 }
 
