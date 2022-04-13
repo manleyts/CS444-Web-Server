@@ -75,7 +75,7 @@ void get_session_file_path(int session_id, char path[]);
 void load_all_sessions();
 
 // Saves the given sessions to the disk.
-void save_session(int session_id, char responce[]);
+void save_session(int session_id, char response[]);
 
 // Assigns a browser ID to the new browser.
 // Determines the correct session ID for the new browser
@@ -252,14 +252,13 @@ void load_all_sessions() {
     // TODO: For Part 1.1, write your file operation code here.
     // Hint: Use get_session_file_path() to get the file path for each session.
     //       Don't forget to load all of sessions on the disk.
-    for(int i = 0; i < 128; i++){//loop through all possible sessions
+    for(int i = 0; i < NUM_SESSIONS; i++){//loop through all possible sessions
         char path[BUFFER_LEN];
         get_session_file_path(i, path);
         FILE *fp;
         
         if((fp = fopen(path, "r"))){//try to open a file for the session if it exists
             //get all the data from the file
-            session_t session = session_list[i];
             char data[BUFFER_LEN];
             memset(data, 0, BUFFER_LEN);
             char c[1] = {'0'};
@@ -269,7 +268,6 @@ void load_all_sessions() {
                     strncat(data,c,1);
                 }
             }
-            printf("%s", data);
             //parse the data from the file here
             char *pc;
             pc = strtok(data, " \n=");
@@ -277,8 +275,8 @@ void load_all_sessions() {
                 char *var = pc;
                 pc = strtok(NULL, " \n=");
                 double val = atof(pc);
-                session.variables[*var-'a'] = true;
-                session.values[*var-'a'] = val;
+                session_list[i].variables[*var-'a'] = true;
+                session_list[i].values[*var-'a'] = val;
                 if(pc != NULL){
                     pc = strtok(NULL, " \n=");
                 }
@@ -341,7 +339,7 @@ int register_browser(int browser_socket_fd) {
         }
     }
     browser_list[browser_id].session_id = session_id;
-
+ 
     sprintf(message, "%d", session_id);
     send_message(browser_socket_fd, message);
 
