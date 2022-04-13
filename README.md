@@ -1,5 +1,7 @@
 # CS 444/544 Project: Prototyping a Web Server/Browser
 
+## MAKE SURE YOU HAVE A FOLDER TITLED "sessions" WITHIN THE PARENT FOLDER
+
 ### Nathan Collinsworth - collinsn@clarkson.edu
 ### Michael Horick - horickmj@clarkson.edu
 ### Taylor Manley - manleyts@clarkson.edu
