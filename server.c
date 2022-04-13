@@ -269,6 +269,7 @@ void load_all_sessions() {
                     strncat(data,c,1);
                 }
             }
+            printf("%s", data);
             //parse the data from the file here
             char *pc;
             pc = strtok(data, " \n=");
