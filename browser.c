@@ -55,7 +55,7 @@ void register_server();
 
 // Listens to the server.
 // Keeps receiving and printing the messages from the server.
-void server_listener();
+void * server_listener();
 
 // Starts the browser.
 // Sets up the connection, start the listener thread,
@@ -132,11 +132,11 @@ void register_server() {
 /**
  * Listens to the server; keeps receiving and printing the messages from the server.
  */
-void server_listener() {
+void * server_listener() {
     // TODO: For Part 2.3, uncomment the loop code that was commented out
     //  when you are done with multithreading.
 
-    // while (browser_on) {
+    while (browser_on) {
 
     char message[BUFFER_LEN];
     receive_message(server_socket_fd, message);
@@ -145,7 +145,7 @@ void server_listener() {
 
     puts(message);
 
-    //}
+    }
 }
 
 /**
@@ -185,6 +185,8 @@ void start_browser(const char host_ip[], int port) {
     // Saves the session ID to the cookie on the disk.
     save_cookie();
 
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, server_listener, NULL);
     // Main loop to read in the user's input and send it out.
     while (browser_on) {
         char message[BUFFER_LEN];
@@ -195,7 +197,6 @@ void start_browser(const char host_ip[], int port) {
         // TODO: For Part 2.3, move server_listener() out of the loop and
         //  creat a thread to run it.
         // Hint: Should we place server_listener() before or after the loop?
-        server_listener();
     }
 
     // Closes the socket.
