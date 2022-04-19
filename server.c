@@ -316,12 +316,18 @@ int register_browser(int browser_socket_fd) {
     //  code around the critical sections identified.
 
     for (int i = 0; i < NUM_BROWSER; ++i) {
+        printf("line 319");
+        pthread_mutex_lock(&browser_list_mutex);
+        printf("line 321");
         if (!browser_list[i].in_use) {
             browser_id = i;
             browser_list[browser_id].in_use = true;
             browser_list[browser_id].socket_fd = browser_socket_fd;
             break;
         }
+        printf("line 328");
+        pthread_mutex_unlock(&browser_list_mutex);
+        printf("line 330");
     }
 
     char message[BUFFER_LEN];
@@ -330,14 +336,20 @@ int register_browser(int browser_socket_fd) {
     int session_id = strtol(message, NULL, 10);
     if (session_id == -1) {
         for (int i = 0; i < NUM_SESSIONS; ++i) {
+            pthread_mutex_lock(&session_list_mutex);
             if (!session_list[i].in_use) {
                 session_id = i;
                 session_list[session_id].in_use = true;
                 break;
             }
+            pthread_mutex_unlock(&session_list_mutex);
         }
     }
+    printf("line 348");
+    pthread_mutex_lock(&session_list_mutex);
     browser_list[browser_id].session_id = session_id;
+    printf("line 351");
+    pthread_mutex_unlock(&browser_list_mutex);
  
     sprintf(message, "%d", session_id);
     send_message(browser_socket_fd, message);
