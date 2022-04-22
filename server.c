@@ -169,6 +169,71 @@ bool process_message(int session_id, const char message[]) {
     char data[BUFFER_LEN];
     strcpy(data, message);
 
+//Make sure the string is in the correct format
+  
+	//make another copy
+	char testdata[BUFFER_LEN];
+	strcpy(testdata, message);
+
+        //check if first string is a letter
+        token = strtok(testdata, " ");
+	symbol = token[0];
+        if(!isalpha(symbol) || token == NULL)
+                return false;
+	 
+        //check for equals sign
+        token = strtok(NULL, " ");
+	if(token == NULL)
+		return false;
+	else {
+        	symbol = token[0];
+        	if(symbol != '=')
+                	return false;
+	}
+
+        //check for first variable/value
+        token = strtok(NULL, " ");
+	if(token == NULL)
+		return false;
+	else {
+        	if( !isalpha(token[0]) && !is_str_numeric(token))
+                	return false;
+	}
+
+	//check for more characters. If none, passes check
+	token = strtok(NULL, " ");
+	
+	if(token != NULL) {
+
+        	//check for operator
+        	symbol = token[0];
+		if(token == NULL)
+			return false;
+		else {
+        		if(symbol != '+' && symbol != '-' && symbol != '*' && symbol != '/')
+                		return false;
+		}
+
+        	//check for second varible/value
+        	token = strtok(NULL, " ");
+		if(token == NULL) 
+			return false;
+		else {
+        		if(!isalpha(token[0]) && !is_str_numeric(token))
+                		return false;
+		}
+	
+        	//check if there is still data left
+        	token = strtok(NULL, " ");
+        	if(token != NULL)
+       	        	return false;
+		//else
+			//return true;
+
+	}
+	//end error checking
+
+
     // Processes the result variable.
     token = strtok(data, " ");
     result_idx = token[0] - 'a';
@@ -389,13 +454,12 @@ void * browser_handler(void * arg) {
 
         bool data_valid = process_message(session_id, message);
         if (!data_valid) {
-            // TODO: For Part 3.1, add code here to send the error message to the browser.
-            continue;
+		send_message(socket_fd, "ERROR");
+		continue;
+		 // TODO: For Part 3.1, add code here to send the error message to the browser.
         }
-
         session_to_str(session_id, response);
         broadcast(session_id, response);
-
         save_session(session_id, response);
     }
 }
