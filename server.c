@@ -47,6 +47,7 @@ typedef struct session_struct {
     bool in_use;
     bool variables[NUM_VARIABLES];
     double values[NUM_VARIABLES];
+    int key;
 } session_t;
 
 static browser_t browser_list[NUM_BROWSER];                             // Stores the information of all browsers.
@@ -168,71 +169,6 @@ bool process_message(int session_id, const char message[]) {
     // Makes a copy of the string since strtok() will modify the string that it is processing.
     char data[BUFFER_LEN];
     strcpy(data, message);
-
-//Make sure the string is in the correct format
-  
-	//make another copy
-	char testdata[BUFFER_LEN];
-	strcpy(testdata, message);
-
-        //check if first string is a letter
-        token = strtok(testdata, " ");
-	symbol = token[0];
-        if(!isalpha(symbol) || token == NULL)
-                return false;
-	 
-        //check for equals sign
-        token = strtok(NULL, " ");
-	if(token == NULL)
-		return false;
-	else {
-        	symbol = token[0];
-        	if(symbol != '=')
-                	return false;
-	}
-
-        //check for first variable/value
-        token = strtok(NULL, " ");
-	if(token == NULL)
-		return false;
-	else {
-        	if( !isalpha(token[0]) && !is_str_numeric(token))
-                	return false;
-	}
-
-	//check for more characters. If none, passes check
-	token = strtok(NULL, " ");
-	
-	if(token != NULL) {
-
-        	//check for operator
-        	symbol = token[0];
-		if(token == NULL)
-			return false;
-		else {
-        		if(symbol != '+' && symbol != '-' && symbol != '*' && symbol != '/')
-                		return false;
-		}
-
-        	//check for second varible/value
-        	token = strtok(NULL, " ");
-		if(token == NULL) 
-			return false;
-		else {
-        		if(!isalpha(token[0]) && !is_str_numeric(token))
-                		return false;
-		}
-	
-        	//check if there is still data left
-        	token = strtok(NULL, " ");
-        	if(token != NULL)
-       	        	return false;
-		//else
-			//return true;
-
-	}
-	//end error checking
-
 
     // Processes the result variable.
     token = strtok(data, " ");
@@ -366,6 +302,12 @@ void save_session(int session_id, char response[]) { //added result parameter to
     fclose(fp);
 }
 
+int check_key(int key) {
+	if (session_list[key].in_use) {
+		key = rand();
+		check_key(key);
+	}
+}
 /**
  * Assigns a browser ID to the new browser.
  * Determines the correct session ID for the new browser through the interaction with it.
@@ -393,14 +335,20 @@ int register_browser(int browser_socket_fd) {
 
     char message[BUFFER_LEN];
     receive_message(browser_socket_fd, message);
-
+    srand(time(NULL));
+    int key = rand();
+    printf("Key before check: %d", key);
+//    key = check_key(key);
+    printf("Key after check: %d", key);
+    	
     int session_id = strtol(message, NULL, 10);
     if (session_id == -1) {
         for (int i = 0; i < NUM_SESSIONS; ++i) {
-            if (!session_list[i].in_use) {
+            if (!session_list[key].in_use) {
                 pthread_mutex_lock(&session_list_mutex);
-                session_id = i;
+                session_id = key;
                 session_list[session_id].in_use = true;
+		session_list[session_id].key = key;
                 pthread_mutex_unlock(&session_list_mutex);
                 break;
             }
@@ -454,12 +402,13 @@ void * browser_handler(void * arg) {
 
         bool data_valid = process_message(session_id, message);
         if (!data_valid) {
-		send_message(socket_fd, "ERROR");
-		continue;
-		 // TODO: For Part 3.1, add code here to send the error message to the browser.
+            // TODO: For Part 3.1, add code here to send the error message to the browser.
+            continue;
         }
+
         session_to_str(session_id, response);
         broadcast(session_id, response);
+
         save_session(session_id, response);
     }
 }
