@@ -90,6 +90,7 @@ void load_cookie() {
     FILE *fp;
     if((fp = fopen(COOKIE_PATH, "r"))){//Opens Cookie if it exists and sets the session_id equal to the cookie
         char data[BUFFER_LEN];
+        memset(data,0,BUFFER_LEN);
         char c[1] = {'0'};
         while(c[0] != EOF){
             c[0] = fgetc(fp);
