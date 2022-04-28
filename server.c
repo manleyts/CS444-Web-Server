@@ -325,6 +325,7 @@ void load_all_sessions() {
         if((fp = fopen(path, "r"))){//try to open a file for the session if it exists
             //get all the data from the file
             char data[BUFFER_LEN];
+            memset(data,0,BUFFER_LEN);
             char c[1] = {'0'};
             while(c[0] != EOF){
                 c[0] = fgetc(fp);
