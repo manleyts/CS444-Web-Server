@@ -50,7 +50,7 @@ typedef struct session_struct {
 } session_t;
 
 typedef struct node{
-    int key;
+    int key; //session_id
     session_t session;
     struct node *next;
 } node;
@@ -77,7 +77,7 @@ int hashCode(struct session_map *m, int key){
     return key % m->size;
 }
 
-void insert(struct session_map *m, int key, session_t val){
+void insertMap(struct session_map *m, int key, session_t val){
     int pos = hashCode(m, key);
     struct node *list = m->list[pos];
     struct node *newNode = (struct node *)malloc(sizeof(struct node));
@@ -95,7 +95,7 @@ void insert(struct session_map *m, int key, session_t val){
     m->list[pos] = newNode;
 }
 
-session_t lookup(struct session_map *m, int key){
+session_t lookupMap(struct session_map *m, int key){
     int pos = hashCode(m, key);
     struct node *list = m->list[pos];
     struct node *temp = list;
@@ -108,10 +108,16 @@ session_t lookup(struct session_map *m, int key){
     return;
 }
 
+void printSession(session_t s){
+    printf("in_use: %d\n", s.in_use);
+    for(int i = 0; i < NUM_VARIABLES; i++){
+        printf("%d: %f\n", s.variables[i], s.values[i]);
+    }
+}
 
 static browser_t browser_list[NUM_BROWSER];                             // Stores the information of all browsers.
 // TODO: For Part 3.2, convert the session_list to a simple hashmap/dictionary.
-static session_m * sessionMap = createMap(NUM_SESSIONS);                        // Stores the information of all sessions.
+struct session_map * sessionMap;   //initializes map that stores the information of all sessions.
 static pthread_mutex_t browser_list_mutex = PTHREAD_MUTEX_INITIALIZER;  // A mutex lock for the browser list.
 static pthread_mutex_t session_list_mutex = PTHREAD_MUTEX_INITIALIZER;  // A mutex lock for the session list.
 
@@ -164,7 +170,8 @@ void start_server(int port);
  */
 void session_to_str(int session_id, char result[]) {
     memset(result, 0, BUFFER_LEN);
-    session_t session = session_list[session_id];
+    //session_t session = session_list[session_id];
+    session_t session = lookupMap(sessionMap, session_id);
 
     for (int i = 0; i < NUM_VARIABLES; ++i) {
         if (session.variables[i]) {
@@ -307,14 +314,18 @@ bool process_message(int session_id, const char message[]) {
         first_value = strtod(token, NULL);
     } else {
         int first_idx = token[0] - 'a';
-        first_value = session_list[session_id].values[first_idx];
+        //first_value = session_list[session_id].values[first_idx];
+        first_value = lookupMap(sessionMap, session_id).values[first_idx];
     }
 
     // Processes the operation symbol.
     token = strtok(NULL, " ");
     if (token == NULL) {
-        session_list[session_id].variables[result_idx] = true;
-        session_list[session_id].values[result_idx] = first_value;
+        //session_list[session_id].variables[result_idx] = true;
+        //session_list[session_id].values[result_idx] = first_value;
+        lookupMap(sessionMap, session_id).variables[result_idx] = true;
+        lookupMap(sessionMap, session_id).values[result_idx] = first_value;
+
         return true;
     }
     symbol = token[0];
@@ -325,24 +336,30 @@ bool process_message(int session_id, const char message[]) {
         second_value = strtod(token, NULL);
     } else {
         int second_idx = token[0] - 'a';
-        second_value = session_list[session_id].values[second_idx];
+        //second_value = session_list[session_id].values[second_idx];
+        lookupMap(sessionMap, session_id).values[second_idx];
     }
 
     // No data should be left over thereafter.
     token = strtok(NULL, " ");
 
-    session_list[session_id].variables[result_idx] = true;
+    //session_list[session_id].variables[result_idx] = true;
+    lookupMap(sessionMap, session_id).variables[result_idx] = true;
 
     if (symbol == '+') {
-        session_list[session_id].values[result_idx] = first_value + second_value;
+        //session_list[session_id].values[result_idx] = first_value + second_value;
+        lookupMap(sessionMap, session_id).values[result_idx] = first_value + second_value;
     } else if (symbol == '-') {
-        session_list[session_id].values[result_idx] = first_value - second_value;
+        //session_list[session_id].values[result_idx] = first_value - second_value;
+        lookupMap(sessionMap, session_id).values[result_idx] = first_value - second_value;
     } else if (symbol == '*') {
-        session_list[session_id].values[result_idx] = first_value * second_value;
+        //session_list[session_id].values[result_idx] = first_value * second_value;
+        lookupMap(sessionMap, session_id).values[result_idx] = first_value * second_value;
     } else if (symbol == '/') {
-        session_list[session_id].values[result_idx] = first_value / second_value;
+        //session_list[session_id].values[result_idx] = first_value / second_value;
+        lookupMap(sessionMap, session_id).values[result_idx] = first_value / second_value;
     }
-
+    
     return true;
 }
 
@@ -385,6 +402,7 @@ void load_all_sessions() {
         if((fp = fopen(path, "r"))){//try to open a file for the session if it exists
             //get all the data from the file
             char data[BUFFER_LEN];
+            memset(data,0,BUFFER_LEN);
             char c[1] = {'0'};
             while(c[0] != EOF){
                 c[0] = fgetc(fp);
@@ -395,16 +413,22 @@ void load_all_sessions() {
             //parse the data from the file here
             char *pc;
             pc = strtok(data, " \n=");
+            session_t * session_p = malloc(sizeof(session_t)); // initializes new session
+            session_t session = *session_p;
             while(pc != NULL){
                 char *var = pc;
                 pc = strtok(NULL, " \n=");
                 double val = atof(pc);
-                session_list[i].variables[*var-'a'] = true;
-                session_list[i].values[*var-'a'] = val;
+                //session_list[i].variables[*var-'a'] = true;
+                //session_list[i].values[*var-'a'] = val;
+                session.variables[*var-'a'] = true;
+                session.values[*var-'a'] = val;
                 if(pc != NULL){
                     pc = strtok(NULL, " \n=");
                 }
             }
+            insertMap(sessionMap, i, session); //insert into map 
+            free(session_p);
             fclose(fp);
         }
     }
@@ -457,10 +481,11 @@ int register_browser(int browser_socket_fd) {
     int session_id = strtol(message, NULL, 10);
     if (session_id == -1) {
         for (int i = 0; i < NUM_SESSIONS; ++i) {
-            if (!session_list[i].in_use) {
+            session_t session = lookupMap(sessionMap, i);
+            if (!session.in_use) { //this might have to change to checking if session is null
                 pthread_mutex_lock(&session_list_mutex);
                 session_id = i;
-                session_list[session_id].in_use = true;
+                session.in_use = true;
                 pthread_mutex_unlock(&session_list_mutex);
                 break;
             }
@@ -590,6 +615,7 @@ void start_server(int port) {
  */
 int main(int argc, char *argv[]) {
     int port = DEFAULT_PORT;
+    sessionMap = createMap(NUM_SESSIONS);  // sets up the hash map
 
     if (argc == 1) {
     } else if ((argc == 3)
